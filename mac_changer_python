@@ -1,0 +1,42 @@
+#!/usr/bin/env python3
+import subprocess
+import optparse
+import re
+
+def arguments():
+    parser = optparse.OptionParser()
+    parser.add_option("-i", "--interface", dest="interface", help="Enter The Interface name")
+    parser.add_option("-m", "--mac", dest="new_mac", help="Enter The New_mac")
+    (options, arguments) =  parser.parse_args()
+    if not options.interface and not options.new_mac:
+        parser.error("[-]please enter an interface and mac address or type --help for more info")
+    elif not options.interface:
+        parser.error("[-]Please enter an Interface or type --help for more info")
+    elif not options.new_mac:
+        parser.error("[-]Please enter a new Mac id or type --help for more info")
+    return options
+
+
+def change_mac(interface,mac_add):
+    subprocess.call(["ifconfig", interface, "down"])
+    subprocess.call(["ifconfig", interface, "hw", "ether", mac_add])
+    subprocess.call(["ifconfig", interface, "up"])
+
+def print_mac(interface):
+    op_results = subprocess.check_output(["ifconfig", interface])
+    reg_result = re.search(r"\w\w:\w\w:\w\w:\w\w:\w\w:\w\w", op_results)
+    if reg_result:
+        return reg_result.group(0)
+    else:
+        print("[-]Please enter correct interface")
+
+options=arguments()
+curent_mac=print_mac(options.interface)
+print("[-]current mac address = "+ str(curent_mac))
+change_mac(options.interface,options.new_mac)
+new_macc=print_mac(options.interface)
+print("[+]New mac address is = "+ str(new_macc))
+if new_macc==options.new_mac:
+    print("[+]Mac address has changed successfully")
+else:
+    print("[-]Mac address didnt changed")
